@@ -1,8 +1,12 @@
+// server.js
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Serve static files (if any)
+// Enable CORS (for FCC testing)
+const cors = require('cors');
+app.use(cors({ optionsSuccessStatus: 200 }));
+
+// Serve static files if needed
 app.use(express.static('public'));
 
 // Root endpoint
@@ -10,20 +14,24 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// Timestamp API endpoint
+// API endpoint for timestamp
 app.get('/api/:date?', (req, res) => {
   let dateParam = req.params.date;
+  let date;
 
-  // If no date provided, use current date
-  let date = dateParam ? new Date(dateParam) : new Date();
-
-  // Handle UNIX timestamp input
-  if (!isNaN(dateParam) && !isNaN(Number(dateParam))) {
-    date = new Date(Number(dateParam));
+  if (!dateParam) {
+    // No date provided, use current date
+    date = new Date();
+  } else {
+    // If date is purely a number, treat as UNIX timestamp
+    if (/^\d+$/.test(dateParam)) {
+      date = new Date(parseInt(dateParam));
+    } else {
+      date = new Date(dateParam);
+    }
   }
 
-  // Check for invalid date
-  if (date.toString() === "Invalid Date") {
+  if (date.toString() === 'Invalid Date') {
     return res.json({ error: "Invalid Date" });
   }
 
@@ -33,7 +41,7 @@ app.get('/api/:date?', (req, res) => {
   });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Listen on the port
+const listener = app.listen(process.env.PORT || 3000, () => {
+  console.log('Your app is listening on port ' + listener.address().port);
 });
